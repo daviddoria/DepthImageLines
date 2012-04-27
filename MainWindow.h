@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MainWindow_H
 
 // Custom
-#include "vtkScribbleInteractorStyle.h"
+#include "ScribbleInteractorStyle/vtkInteractorStyleScribble.h"
 #include "Types.h"
 
 // Submodules
@@ -43,9 +43,9 @@ Q_OBJECT
 public:
   MainWindow(QWidget *parent = 0);
 
-  void StrokeUpdatedSlot(vtkPolyData*);
-
-public Q_SLOTS:
+  //void StrokeUpdatedSlot(vtkPolyData*);
+  void StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId, void* callData)
+public slots:
 
   void mnuOpenPTX_triggered();
   void mnuLoadMask_triggered();
@@ -62,7 +62,7 @@ private:
 
   // Objects for the left renderer
   vtkSmartPointer<vtkRenderer> LeftRenderer;
-  vtkSmartPointer<vtkScribbleInteractorStyle> ScribbleInteractorStyle;
+  vtkSmartPointer<vtkInteractorStyleScribble> ScribbleInteractorStyle;
   vtkSmartPointer<vtkImageData> Image;
   vtkSmartPointer<vtkImageActor> ImageActor;
 

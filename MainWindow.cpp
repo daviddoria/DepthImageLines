@@ -113,10 +113,11 @@ MainWindow::MainWindow(QWidget *parent)
   this->qvtkWidgetRight->GetRenderWindow()->AddRenderer(this->RightRenderer);
 
   // Setup left interactor style
-  this->ScribbleInteractorStyle = vtkSmartPointer<vtkScribbleInteractorStyle>::New();
+  this->ScribbleInteractorStyle = vtkSmartPointer<vtkInteractorStyleScribble>::New();
   this->qvtkWidgetLeft->GetInteractor()->SetInteractorStyle(this->ScribbleInteractorStyle);
-  this->ScribbleInteractorStyle->StrokeUpdated.connect(boost::bind(&MainWindow::StrokeUpdatedSlot, this, _1));
-
+  //this->ScribbleInteractorStyle->StrokeUpdated.connect(boost::bind(&MainWindow::StrokeUpdatedSlot, this, _1));
+  this->ScribbleInteractorStyle->AddObserver(this->ScribbleInteractorStyle->ScribbleEvent,
+                                             this, &MainWindow::StrokeUpdatedSlot);
   // Setup right interactor style
   vtkSmartPointer<vtkInteractorStyleTrackballCamera> trackballStyle =
     vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
@@ -185,12 +186,15 @@ void MainWindow::btnSaveDepths_clicked()
   writer->Update();
 }
 
-void MainWindow::StrokeUpdatedSlot(vtkPolyData* pathPolydata)
+void MainWindow::StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId, void* callData)
 {
   // This function is called when the ScribbleInteractorStyle emits its Updated signal
   //std::cout << "Stroke updated." << std::endl;
+  vtkSmartPointer<vtkPolyData> pathPolydata = vtkSmartPointer<vtkPolyData>::New();
 
-  // Setup and draw the 3D line
+  VTKHelpers::PathFromPoints(this->ScribbleInteractorStyle->GetSelection(), pathPolydata);
+  
+  // Setup and draw the 2D line
   this->Line2D->ShallowCopy(pathPolydata);
   this->Line2DMapper->SetInputData(this->Line2D);
   this->Line2DActor->SetMapper(this->Line2DMapper);
