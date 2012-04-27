@@ -17,11 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow.h"
 
-// Custom
-#include "Helpers.h"
-
 // Submodules
+#include "Helpers/Helpers.h"
 #include "PTXTools/PTXReader.h"
+#include "ITKHelpers/ITKHelpers.h"
+#include "VTKHelpers/VTKHelpers.h"
+#include "ITKVTKHelpers/ITKVTKHelpers.h"
 
 // ITK
 #include "itkImageFileReader.h"
@@ -154,7 +155,7 @@ void MainWindow::btnSaveDepths_clicked()
   VectorType v = p1 - p0;
   v.Normalize();
     
-  std::vector<itk::Index<2> > pixels = Helpers::PolyDataToPixelList(this->LineHole2D);
+  std::vector<itk::Index<2> > pixels = ITKVTKHelpers::PolyDataToPixelList(this->LineHole2D);
   std::vector<float> distances;
 
   PointType origin;
@@ -201,7 +202,7 @@ void MainWindow::StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId,
   this->LeftRenderer->AddActor(this->Line2DActor);
 
   // Create 3D line from 2D line
-  std::vector<itk::Index<2> > pixels = Helpers::PolyDataToPixelList(pathPolydata);
+  std::vector<itk::Index<2> > pixels = ITKVTKHelpers::PolyDataToPixelList(pathPolydata);
   std::cout << "There are " << pixels.size() << " points in the path." << std::endl;
 
   // Insert valid points into a vtkPoints object from which to create a PolyLine
@@ -244,7 +245,7 @@ void MainWindow::StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId,
   if(this->Mask)
     {
     bool hasInteriorLine;
-    std::pair<itk::Index<2>, itk::Index<2> > interiorLine = Helpers::IntersectLineWithMask(pixels, this->Mask, hasInteriorLine);
+    std::pair<itk::Index<2>, itk::Index<2> > interiorLine = ITKHelpers::IntersectLineWithHole(pixels, this->Mask, hasInteriorLine);
     std::cout << "Has interior line? " << hasInteriorLine << std::endl;
   
     bool endPointsValid = true;
@@ -273,8 +274,8 @@ void MainWindow::StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId,
 
       vtkSmartPointer<vtkLineSource> lineSource2D =
         vtkSmartPointer<vtkLineSource>::New();
-      double p1_2D[3] = {interiorLine.first[0], interiorLine.first[1], 0};
-      double p2_2D[3] = {interiorLine.second[0], interiorLine.second[1], 0};
+      double p1_2D[3] = {static_cast<double>(interiorLine.first[0]), static_cast<double>(interiorLine.first[1]), 0.0d};
+      double p2_2D[3] = {static_cast<double>(interiorLine.second[0]), static_cast<double>(interiorLine.second[1]), 0.0d};
       lineSource2D->SetPoint1(p1_2D);
       lineSource2D->SetPoint2(p2_2D);
       lineSource2D->Update();
@@ -362,7 +363,7 @@ void MainWindow::CreateOutputs()
   PTXImage::RGBImageType::Pointer image = PTXImage::RGBImageType::New();
   this->ptxImage.CreateRGBImage(image);
 
-  Helpers::ITKImageToVTKImage<PTXImage::RGBImageType>(image, this->Image);
+  ITKVTKHelpers::ITKRGBImageToVTKImage(image.GetPointer(), this->Image);
 
   this->ImageActor->SetInputData(this->Image);
   this->LeftRenderer->AddActor(this->ImageActor);

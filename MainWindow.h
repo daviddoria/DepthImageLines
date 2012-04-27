@@ -44,7 +44,8 @@ public:
   MainWindow(QWidget *parent = 0);
 
   //void StrokeUpdatedSlot(vtkPolyData*);
-  void StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId, void* callData)
+  void StrokeUpdatedSlot(vtkObject* caller, long unsigned int eventId, void* callData);
+
 public slots:
 
   void mnuOpenPTX_triggered();
